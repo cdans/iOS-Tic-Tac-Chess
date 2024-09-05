@@ -27,6 +27,7 @@ class GameViewController: UIViewController {
     var gameBoard: SCNNode!
     var currentPlayer: Player = .x
     var boardState: [[Player?]] = Array(repeating: Array(repeating: nil, count: 4), count: 4)
+    var cameraNode: SCNNode!
     
     enum Player: String {
         case x = "X"
@@ -58,17 +59,16 @@ class GameViewController: UIViewController {
     func setupScene() {
         let scene = SCNScene()
         gameView.scene = scene
-        gameView.allowsCameraControl = true
+        gameView.allowsCameraControl = false
         gameView.showsStatistics = true
         gameView.backgroundColor = colors["background"]!
     }
     
     func setupCamera() {
-        let cameraNode = SCNNode()
+        cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        // Adjust camera position to view the board from above and centered, zoomed out a bit
-        cameraNode.position = SCNVector3(x: 0, y: 10, z: 2)
-        cameraNode.eulerAngles = SCNVector3(x: -.pi/2.5, y: 0, z: 0)  // Adjust angle for better view
+        cameraNode.position = SCNVector3(x: 0, y: 7, z: 7)
+        cameraNode.eulerAngles = SCNVector3(x: -.pi/4, y: 0, z: 0)  // 45-degree angle from x-axis
         gameView.scene?.rootNode.addChildNode(cameraNode)
     }
     
@@ -132,6 +132,7 @@ class GameViewController: UIViewController {
                         resetBoard()
                     } else {
                         switchPlayer()
+                        rotateCamera()
                     }
                 }
             }
@@ -147,6 +148,15 @@ class GameViewController: UIViewController {
     
     func switchPlayer() {
         currentPlayer = (currentPlayer == .x) ? .o : .x
+    }
+    
+    func rotateCamera() {
+        let rotateAngle: Float = (currentPlayer == .x) ? .pi : -.pi
+        let rotateAction = SCNAction.rotateBy(x: 0, y: CGFloat(rotateAngle), z: 0, duration: 1.0)
+        let newZ: Float = (currentPlayer == .x) ? 7 : -7
+        let moveAction = SCNAction.move(to: SCNVector3(x: 0, y: 7, z: newZ), duration: 1.0)
+        let groupAction = SCNAction.group([rotateAction, moveAction])
+        cameraNode.runAction(groupAction)
     }
     
     func checkForWin() -> Bool {
@@ -206,6 +216,10 @@ class GameViewController: UIViewController {
         
         // Reset the current player to X
         currentPlayer = .x
+        
+        // Reset camera position and rotation
+        cameraNode.position = SCNVector3(x: 0, y: 7, z: 7)
+        cameraNode.eulerAngles = SCNVector3(x: -.pi/4, y: 0, z: 0)
     }
     
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
