@@ -8,6 +8,15 @@
 import UIKit
 import SceneKit
 
+var colors: [String: UIColor] = [
+    "background": UIColor(red: 0.96, green: 0.93, blue: 0.86, alpha: 1.0), // Light beige
+    "cellDark": UIColor(red: 0.82, green: 0.71, blue: 0.55, alpha: 1.0), // Pastel brown
+    "cellLight": UIColor(red: 0.94, green: 0.89, blue: 0.80, alpha: 1.0), // Pastel beige
+    "line": UIColor(red: 0.98, green: 0.98, blue: 0.98, alpha: 1.0), // Pastel white
+    "x": UIColor(red: 1.0, green: 0.8, blue: 0.8, alpha: 1.0), // Pastel red
+    "o": UIColor(red: 0.8, green: 0.8, blue: 1.0, alpha: 1.0) // Pastel blue
+]
+
 class GameViewController: UIViewController {
 
     var gameView: SCNView {
@@ -25,8 +34,8 @@ class GameViewController: UIViewController {
         
         var color: UIColor {
             switch self {
-            case .x: return .red
-            case .o: return .blue
+            case .x: return colors["x"]!
+            case .o: return colors["o"]!
             }
         }
     }
@@ -51,15 +60,15 @@ class GameViewController: UIViewController {
         gameView.scene = scene
         gameView.allowsCameraControl = true
         gameView.showsStatistics = true
-        gameView.backgroundColor = .black
+        gameView.backgroundColor = colors["background"]!
     }
     
     func setupCamera() {
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        // Adjust camera position to view the board from above and centered
-        cameraNode.position = SCNVector3(x: 0, y: 8, z: 0)
-        cameraNode.eulerAngles = SCNVector3(x: -.pi/2, y: 0, z: 0)  // Point camera downwards
+        // Adjust camera position to view the board from above and centered, zoomed out a bit
+        cameraNode.position = SCNVector3(x: 0, y: 10, z: 2)
+        cameraNode.eulerAngles = SCNVector3(x: -.pi/2.5, y: 0, z: 0)  // Adjust angle for better view
         gameView.scene?.rootNode.addChildNode(cameraNode)
     }
     
@@ -70,7 +79,7 @@ class GameViewController: UIViewController {
             for z in 0..<4 {
                 let cellNode = SCNNode(geometry: SCNBox(width: 1, height: 0.1, length: 1, chamferRadius: 0))
                 cellNode.position = SCNVector3(x: Float(x) - 1.5, y: 0, z: Float(z) - 1.5)
-                cellNode.geometry?.firstMaterial?.diffuse.contents = UIColor.white
+                cellNode.geometry?.firstMaterial?.diffuse.contents = (x + z) % 2 == 0 ? colors["cellLight"]! : colors["cellDark"]!
                 gameBoard.addChildNode(cellNode)
             }
         }
@@ -79,7 +88,7 @@ class GameViewController: UIViewController {
     }
     
     func drawBoardLines() {
-        let lineColor = UIColor.black
+        let lineColor = colors["line"]!
         let lineWidth: CGFloat = 0.02
         
         // Draw horizontal lines
