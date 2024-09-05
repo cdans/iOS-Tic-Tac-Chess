@@ -127,7 +127,7 @@ class GameViewController: UIViewController {
                     if checkForWin() {
                         showWinnerMessage()
                         resetBoard()
-                    } else if isBoardFull() {
+                    } else if isDraw() {
                         showDrawMessage()
                         resetBoard()
                     } else {
@@ -192,6 +192,44 @@ class GameViewController: UIViewController {
     
     func isBoardFull() -> Bool {
         return boardState.flatMap { $0 }.compactMap { $0 }.count == 16
+    }
+
+    func isDraw() -> Bool {
+        if isBoardFull() {
+            return true
+        }
+        
+        // Check if it's still possible to get 4 in a row
+        for player in [Player.x, Player.o] {
+            // Check rows
+            for row in boardState {
+                if row.filter({ $0 == player }).count + row.filter({ $0 == nil }).count >= 4 {
+                    return false
+                }
+            }
+            
+            // Check columns
+            for col in 0..<4 {
+                let column = boardState.map { $0[col] }
+                if column.filter({ $0 == player }).count + column.filter({ $0 == nil }).count >= 4 {
+                    return false
+                }
+            }
+            
+            // Check diagonals
+            let diagonal1 = [boardState[0][0], boardState[1][1], boardState[2][2], boardState[3][3]]
+            let diagonal2 = [boardState[0][3], boardState[1][2], boardState[2][1], boardState[3][0]]
+            
+            if diagonal1.filter({ $0 == player }).count + diagonal1.filter({ $0 == nil }).count >= 4 {
+                return false
+            }
+            
+            if diagonal2.filter({ $0 == player }).count + diagonal2.filter({ $0 == nil }).count >= 4 {
+                return false
+            }
+        }
+        
+        return true // No more possible wins
     }
     
     func showWinnerMessage() {
