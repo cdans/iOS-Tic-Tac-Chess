@@ -140,9 +140,47 @@ class GameViewController: UIViewController {
     }
     
     func placePiece(at node: SCNNode) {
-        let pieceNode = SCNNode(geometry: SCNSphere(radius: 0.4))
+        let pieceNode: SCNNode
+        
+        if currentPlayer == .x {
+            // Create a 3D cross for player X
+            let crossGeometry = SCNBox(width: 0.8, height: 0.2, length: 0.2, chamferRadius: 0.05)
+            let crossNode1 = SCNNode(geometry: crossGeometry)
+            let crossNode2 = SCNNode(geometry: crossGeometry)
+            
+            // Rotate both nodes by 45 degrees (π/4 radians) around the y-axis
+            crossNode1.eulerAngles.y = Float.pi / 4
+            crossNode2.eulerAngles.y = Float.pi * 3 / 4  // 45 degrees + 90 degrees
+            
+            pieceNode = SCNNode()
+            pieceNode.addChildNode(crossNode1)
+            pieceNode.addChildNode(crossNode2)
+        } else {
+            // Create a 3D ring for player O
+            let ringGeometry = SCNTorus(ringRadius: 0.3, pipeRadius: 0.08)
+            pieceNode = SCNNode(geometry: ringGeometry)
+        }
+        
         pieceNode.position = SCNVector3(node.position.x, 0.5, node.position.z)
-        pieceNode.geometry?.firstMaterial?.diffuse.contents = currentPlayer.color
+        
+        // Apply material to the piece
+        let material = SCNMaterial()
+        material.diffuse.contents = currentPlayer.color
+        material.specular.contents = UIColor.white
+        
+        if currentPlayer == .x {
+            pieceNode.childNodes.forEach { $0.geometry?.materials = [material] }
+        } else {
+            pieceNode.geometry?.materials = [material]
+        }
+        
+        // Add a cool animation
+        let scaleAnimation = SCNAction.sequence([
+            SCNAction.scale(to: 1.2, duration: 0.1),
+            SCNAction.scale(to: 1.0, duration: 0.1)
+        ])
+        pieceNode.runAction(scaleAnimation)
+        
         gameBoard.addChildNode(pieceNode)
     }
     
